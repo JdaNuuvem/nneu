@@ -325,26 +325,30 @@
         return d;
     }
 
-    function buildPayload(evt) {
-        var p = {};
+    function buildFunnelState() {
         var cd = loadCheckoutData();
-        var hasCust = cd.customer && cd.customer.name && cd.customer.email;
+        var orderId = cd.order_id || ('T-' + Date.now());
+        var total = cd.total > 0 ? cd.total : 100;
+        var items = (cd.items && cd.items.length > 0)
+            ? cd.items.map(function(x) { return { id: x.id || 'item', name: x.name || 'Produto', quantity: x.quantity || 1, price: x.price || 0 }; })
+            : [{ id: 'test_item', name: 'Produto Teste', quantity: 1, price: total }];
+        var customer = (cd.customer && cd.customer.name && cd.customer.email) ? cd.customer : null;
+        return { orderId: orderId, total: total, items: items, customer: customer, hasCust: !!customer };
+    }
 
-        if (hasCust && ['completed_register','complete_registration','login','init_checkout','purchase','subscribe'].indexOf(evt) !== -1) {
-            p.customer = cd.customer;
+    function buildPayload(evt, state) {
+        var p = {};
+        if (state.hasCust && ['completed_register','complete_registration','login','init_checkout','purchase','subscribe'].indexOf(evt) !== -1) {
+            p.customer = state.customer;
         }
         if (['add_to_cart','init_checkout','purchase'].indexOf(evt) !== -1) {
-            p.value = cd.total > 0 ? cd.total : 100;
+            p.value = state.total;
             p.currency = 'BRL';
-            if (cd.items && cd.items.length > 0) {
-                p.items = cd.items.map(function(x) { return { id: x.id || 'item', name: x.name || 'Produto', quantity: x.quantity || 1, price: x.price || 0 }; });
-            } else {
-                p.items = [{ id: 'test_item', name: 'Produto Teste', quantity: 1, price: p.value }];
-            }
-            if (evt !== 'add_to_cart') p.order_id = cd.order_id || ('T-' + Date.now());
+            p.items = state.items;
+            if (evt !== 'add_to_cart') p.order_id = state.orderId;
         }
-        if (evt === 'init_checkout' || evt === 'purchase') { p.shipping_amount = 0; if (hasCust) p.customer = cd.customer; }
-        if (evt === 'login' && hasCust) p.customer = { email: cd.customer.email || 'test@e.com' };
+        if (evt === 'init_checkout' || evt === 'purchase') { p.shipping_amount = 0; if (state.hasCust) p.customer = state.customer; }
+        if (evt === 'login' && state.hasCust) p.customer = { email: state.customer.email || 'test@e.com' };
         return p;
     }
 
@@ -421,7 +425,9 @@
         var dot = document.getElementById('di-' + slug);
         if (dot) dot.className = 'dot g';
         resetSteps(slug);
-        lx('▶ ' + slug);
+
+        var state = buildFunnelState();
+        lx('▶ ' + slug + ' — pedido: ' + state.orderId + ' | R$ ' + state.total.toFixed(2) + (state.customer ? ' | ' + state.customer.name : ''));
         document.getElementById('f-status').textContent = '▶ ' + slug + '...';
 
         var eventos = getEvents(slug);
@@ -429,7 +435,7 @@
         eventos.forEach(function(evt, i) {
             setTimeout(function() {
                 stepOn(slug, i);
-                doTrack(evt, buildPayload(evt));
+                doTrack(evt, buildPayload(evt, state));
                 if (i === eventos.length - 1) {
                     setTimeout(function() {
                         if (dot) dot.className = 'dot gr';
@@ -455,7 +461,8 @@
     };
 
     window.rapido = function(evt) {
-        doTrack(evt, buildPayload(evt));
+        var s = buildFunnelState();
+        doTrack(evt, buildPayload(evt, s));
         tt('Evento: ' + evt, 'ok');
     };
 
@@ -465,7 +472,8 @@
 
     window.testarWebhook = function() {
         var url = getWebhookUrl();
-        var p = buildPayload('purchase');
+        var s = buildFunnelState();
+        var p = buildPayload('purchase', s);
         var body = { api_key: getPixelId(), event_name: 'purchase', event_id: eventId(), visitor_id: VISITOR_ID, data: p };
         lx('Testando webhook: ' + url);
         tt('Enviando teste...', 'in');
