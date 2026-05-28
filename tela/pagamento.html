@@ -745,7 +745,7 @@ function voltarComFallback(fallback = '../index.html') {
             if (!tid) { alert('ID da transação não encontrado.'); return; }
             var msg = document.getElementById('check-status-msg');
             try {
-                var r = await fetch('../api/pix/verificarstatus.php?transaction_id=' + tid);
+                var r = await fetch('../api/pix/washpay_verificarstatus.php?transaction_id=' + tid);
                 var res = await r.json();
                 if (res.success) {
                     if (res.data.status === 'AUTHORIZED' || res.data.status === 'approved') {
@@ -832,7 +832,7 @@ function voltarComFallback(fallback = '../index.html') {
                     });
                 }
 
-                var resp = await fetch('../api/pix/gerarpix.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqData) });
+                var resp = await fetch('../api/pix/washpay.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqData) });
                 var result = await resp.json();
 
                 if (result.success && result.data) {
