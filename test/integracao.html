@@ -132,6 +132,17 @@
 
 <div class="wrap">
 
+    <!-- WASHPAY WEBHOOK -->
+    <div class="cx" style="border-color:#23863644;background:#23863608">
+        <div class="cx-t">💳 Webhook WashPay <span class="tag green" style="margin-left:4px">copie para o painel</span></div>
+        <div class="pixel-id">
+            <span>URL</span>
+            <span id="washpay-webhook-url" style="flex:1;word-break:break-all;font-size:11px">http://oc0woowws80ok044s8wswooo.187.124.112.164.sslip.io/api/pix/washpay-webhook.php</span>
+            <button class="btn" onclick="copiarTexto(document.getElementById('washpay-webhook-url').textContent)" style="flex-shrink:0">📋 Copiar</button>
+        </div>
+        <div style="font-size:9px;color:var(--t2);margin-top:4px">Cole esta URL no campo <strong>Webhook URL</strong> da sua API Key no painel da WashPay</div>
+    </div>
+
     <!-- CONFIG -->
     <div class="cx">
         <div class="cx-t">🔌 Configuração</div>
@@ -496,6 +507,10 @@
     // Init
     lx('Página carregada');
     aplicarConfig();
+
+    // WashPay webhook URL dinâmico
+    var whUrl = window.location.origin + '/api/pix/washpay-webhook.php';
+    document.getElementById('washpay-webhook-url').textContent = whUrl;
 
     var cd = loadCheckoutData();
     if (cd.customer) lx('Cliente no checkout: ' + cd.customer.name);
