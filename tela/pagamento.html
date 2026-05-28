@@ -863,6 +863,9 @@ function voltarComFallback(fallback = '../index.html') {
             var items = loadCartItems();
             var cd = getCheckoutData();
 
+            // Cache: salvar URL params para nunca perder
+            if (window.location.search) localStorage.setItem('checkout_url_params', window.location.search);
+
             var contactData = JSON.parse(localStorage.getItem('checkout_contact') || '{}');
             if (contactData.nome) document.getElementById('nome').value = contactData.nome;
             if (contactData.sobrenome) document.getElementById('sobrenome').value = contactData.sobrenome;
@@ -914,6 +917,25 @@ function voltarComFallback(fallback = '../index.html') {
                 e.target.value = v;
             });
 
+            // Auto-save cache no formulario de comprador
+            var buyerFields = ['nome','sobrenome','email','cpf','telefone'];
+            function saveBuyerCache() {
+                var cache = {};
+                buyerFields.forEach(function(id) { var el = document.getElementById(id); if (el) cache[id] = el.value; });
+                localStorage.setItem('checkout_buyer_cache', JSON.stringify(cache));
+            }
+            buyerFields.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) { el.addEventListener('input', saveBuyerCache); el.addEventListener('blur', saveBuyerCache); }
+            });
+
+            // Restaurar cache se existir (e contactData nao preencheu tudo)
+            var buyerCache = JSON.parse(localStorage.getItem('checkout_buyer_cache') || '{}');
+            buyerFields.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el && !el.value && buyerCache[id]) el.value = buyerCache[id];
+            });
+
             // Botões
             document.getElementById('btn-create-pix').addEventListener('click', function(e) {
                 e.preventDefault();
@@ -927,6 +949,7 @@ function voltarComFallback(fallback = '../index.html') {
                 if (!isValidCPF(cpf)) { alert('CPF inválido.'); return; }
                 var bd = { nome: nome, sobrenome: sobrenome, nomeCompleto: nome + ' ' + sobrenome, email: email, cpf: cpf.replace(/\D/g,''), telefone: telefone.replace(/\D/g,''), data: new Date().toISOString() };
                 localStorage.setItem('checkout_buyer', JSON.stringify(bd));
+                localStorage.removeItem('checkout_buyer_cache');
                 updateReviewSection();
                 document.getElementById('step-nfe').classList.add('hidden');
                 document.getElementById('step-review').classList.remove('hidden');

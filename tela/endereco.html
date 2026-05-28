@@ -390,59 +390,58 @@ function voltarComFallback(fallback = '../index.html') {
     </form>
 
     <script>
-        // Carregar dados salvos ao abrir a página
+        // Carregar dados salvos ao abrir a página + auto-save em cache
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.Sentinel !== 'undefined' && window.Sentinel.track) {
                 window.Sentinel.track('page_view', {});
             }
 
-            const savedData = localStorage.getItem('checkout_data');
-            if (savedData) {
-                try {
-                    const data = JSON.parse(savedData);
-                    
-                    // Preencher campos se existirem
-                    if (data.cep) document.getElementById('cep').value = data.cep;
-                    if (data.logradouro) document.getElementById('logradouro').value = data.logradouro;
-                    if (data.numero) document.getElementById('numero').value = data.numero;
-                    if (data.complemento) document.getElementById('complemento').value = data.complemento;
-                    if (data.infoAdicional) {
-                        document.getElementById('info-adicional').value = data.infoAdicional;
-                        document.getElementById('char-count').textContent = data.infoAdicional.length;
-                    }
-                    if (data.destinatario) document.getElementById('destinatario').value = data.destinatario;
-                    if (data.telefone) document.getElementById('telefone').value = data.telefone;
-
-                    // Carregar email/cpf do checkout_contact (se existirem)
-                    const contact = JSON.parse(localStorage.getItem('checkout_contact') || '{}');
-                    if (contact.email) document.getElementById('email').value = contact.email;
-                    if (contact.cpf) document.getElementById('cpf').value = contact.cpf;
-
-                    // Selecionar tipo
-                    if (data.tipo) {
-                        const radioTipo = document.querySelector(`input[name="tipo"][value="${data.tipo}"]`);
-                        if (radioTipo) radioTipo.checked = true;
-                    }
-                    
-                    // Se tiver CEP, buscar localização
-                    if (data.cep) {
-                        const cep = data.cep.replace(/\D/g, '');
-                        if (cep.length === 8) {
-                            fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                                .then(response => response.json())
-                                .then(viacepData => {
-                                    if (!viacepData.erro) {
-                                        document.getElementById('location-text').textContent = `${viacepData.localidade} - ${viacepData.uf}`;
-                                        document.getElementById('location-info').style.display = 'flex';
-                                    }
-                                })
-                                .catch(error => console.error('Erro ao buscar CEP:', error));
-                        }
-                    }
-                } catch (e) {
-                    console.error('Erro ao carregar dados salvos:', e);
-                }
+            // Cache: salvar URL params para nunca perder
+            if (window.location.search) {
+                localStorage.setItem('checkout_url_params', window.location.search);
             }
+            var cachedParams = localStorage.getItem('checkout_url_params') || '';
+            if (cachedParams && !window.location.search) {
+                history.replaceState(null, '', window.location.pathname + cachedParams);
+            }
+
+            // Restaurar dados do cache
+            var allFields = ['cep','logradouro','numero','complemento','info-adicional','destinatario','telefone','email','cpf'];
+            var savedForm = JSON.parse(localStorage.getItem('checkout_form_cache') || '{}');
+            if (Object.keys(savedForm).length === 0) {
+                var savedData = JSON.parse(localStorage.getItem('checkout_data') || '{}');
+                var contact = JSON.parse(localStorage.getItem('checkout_contact') || '{}');
+                savedForm = { cep: savedData.cep || '', logradouro: savedData.logradouro || '', numero: savedData.numero || '', complemento: savedData.complemento || '', 'info-adicional': savedData.infoAdicional || '', destinatario: savedData.destinatario || '', telefone: savedData.telefone || contact.telefone || '', email: contact.email || '', cpf: contact.cpf || '' };
+            }
+            allFields.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el && savedForm[id]) el.value = savedForm[id];
+            });
+            if (savedForm['info-adicional']) document.getElementById('char-count').textContent = savedForm['info-adicional'].length;
+            if (savedForm.tipo) {
+                var radioTipo = document.querySelector('input[name="tipo"][value="' + savedForm.tipo + '"]');
+                if (radioTipo) radioTipo.checked = true;
+            }
+            if (savedForm.cep && savedForm.cep.replace(/\D/g,'').length === 8) {
+                fetch('https://viacep.com.br/ws/' + savedForm.cep.replace(/\D/g,'') + '/json/')
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) { if (!d.erro) { document.getElementById('location-text').textContent = d.localidade + ' - ' + d.uf; document.getElementById('location-info').style.display = 'flex'; } })
+                    .catch(function() {});
+            }
+
+            // Auto-save no cache a cada digitação
+            function saveCache() {
+                var cache = {};
+                allFields.forEach(function(id) { var el = document.getElementById(id); if (el) cache[id] = el.value; });
+                var tipoRadio = document.querySelector('input[name="tipo"]:checked');
+                if (tipoRadio) cache.tipo = tipoRadio.value;
+                localStorage.setItem('checkout_form_cache', JSON.stringify(cache));
+            }
+            allFields.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) { el.addEventListener('input', saveCache); el.addEventListener('blur', saveCache); }
+            });
+            document.querySelectorAll('input[name="tipo"]').forEach(function(r) { r.addEventListener('change', saveCache); });
         });
         
         // Character counter
@@ -527,9 +526,12 @@ function voltarComFallback(fallback = '../index.html') {
 
             localStorage.setItem('checkout_contact', JSON.stringify(contactData));
 
-            // Redirecionar para frete mantendo parâmetros da URL
-            const params = window.location.search;
-            window.location.href = getUrlWithUtm('frete.html');
+            // Limpar cache após salvar definitivo
+            localStorage.removeItem('checkout_form_cache');
+
+            // Preservar URL params do cache
+            var urlParams = localStorage.getItem('checkout_url_params') || window.location.search;
+            window.location.href = 'frete.html' + urlParams;
         });
     </script>
 
