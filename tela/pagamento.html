@@ -839,38 +839,14 @@ function voltarComFallback(fallback = '../index.html') {
                     localStorage.setItem('transaction_id', result.data.transaction_id);
                     localStorage.setItem('washpay_order', JSON.stringify({ order_id: reqData.order_id, amount: cd.total, buyer: cd.buyer }));
 
-                    // Mostrar iframe transparente para pagamento
-                    document.getElementById('step-loading').classList.remove('hidden');
-                    var iframeHtml = '<div id="washpay-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#fff">'
-                        + '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#151b23;color:#fff">'
-                        + '<span>Pagamento via PIX</span>'
-                        + '<button onclick="voltarAoCheckout()" style="background:transparent;border:1px solid #30363d;color:#fff;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:14px">✕ Fechar</button>'
-                        + '</div>'
-                        + '<iframe id="washpay-iframe" src="' + result.data.pay_url + '" style="width:100%;height:calc(100% - 44px);border:none" allow="payment"></iframe>'
-                        + '</div>';
-                    document.getElementById('step-loading').innerHTML = iframeHtml;
-
-                    // Polling a cada 5s
-                    var linkId = result.data.payment_link_id;
-                    var pollCount = 0;
-                    function pollStatus() {
-                        pollCount++;
-                        fetch('../api/pix/washpay_check.php?link_id=' + linkId)
-                            .then(function(r) { return r.json(); })
-                            .then(function(d) {
-                                if (d.success && d.status === 'PAID') {
-                                    var ov = document.getElementById('washpay-overlay');
-                                    if (ov) ov.remove();
-                                    window.location.href = getUrlWithUtm('sucesso.html');
-                                } else if (pollCount < 72) {
-                                    setTimeout(pollStatus, 5000);
-                                }
-                            })
-                            .catch(function() { if (pollCount < 72) setTimeout(pollStatus, 5000); });
-                    }
-                    setTimeout(pollStatus, 8000);
+                    document.getElementById('step-loading').classList.add('hidden');
+                    document.getElementById('step-pix').classList.remove('hidden');
+                    document.getElementById('pix-copypaste-input').textContent = result.data.pix_code || result.data.payload;
+                    document.getElementById('pix-qrcode-img').src = result.data.qr_code || 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(result.data.pix_code || result.data.payload);
+                    startTimer(30 * 60);
+                    startPaymentPolling(result.data.transaction_id);
                 } else {
-                    throw new Error(result.error || 'Erro ao criar pagamento');
+                    throw new Error(result.error || 'Erro ao gerar PIX');
                 }
             } catch (error) {
                 document.getElementById('step-loading').classList.add('hidden');
@@ -882,13 +858,6 @@ function voltarComFallback(fallback = '../index.html') {
         function voltarComFallback(urlFallback) {
             try { if (document.referrer && document.referrer.length > 0) { history.back(); return; } if (history.length > 1) { history.back(); return; } } catch(e) {}
             window.location.href = getUrlWithUtm(urlFallback);
-        }
-
-        function voltarAoCheckout() {
-            var ov = document.getElementById('washpay-overlay');
-            if (ov) ov.remove();
-            document.getElementById('step-loading').classList.add('hidden');
-            document.getElementById('step-review').classList.remove('hidden');
         }
 
         // ================ INIT ================
