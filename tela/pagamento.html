@@ -822,6 +822,16 @@ function voltarComFallback(fallback = '../index.html') {
                 };
                 for (var k in tracking) { if (tracking.hasOwnProperty(k)) reqData[k] = tracking[k]; }
 
+                if (typeof window.Sentinel !== 'undefined' && window.Sentinel.track) {
+                    window.Sentinel.track('init_checkout', {
+                        value: cd.total || 99.90, currency: 'BRL',
+                        order_id: reqData.order_id,
+                        items: items.length ? items.map(function(x) { return { id: x.id, name: x.nome, quantity: x.quantidade || 1, price: x.preço }; }) : [{ id: 'item', name: 'Produto', quantity: 1, price: cd.total || 99.90 }],
+                        shipping_amount: cd.shipping.price || 0,
+                        customer: cd.buyer.nomeCompleto ? { name: cd.buyer.nomeCompleto, email: cd.buyer.email, phone: cd.buyer.telefone } : undefined
+                    });
+                }
+
                 var resp = await fetch('../api/pix/gerarpix.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqData) });
                 var result = await resp.json();
 
@@ -856,6 +866,14 @@ function voltarComFallback(fallback = '../index.html') {
             var contactData = JSON.parse(localStorage.getItem('checkout_contact') || '{}');
             if (contactData.nome) document.getElementById('nome').value = contactData.nome;
             if (contactData.sobrenome) document.getElementById('sobrenome').value = contactData.sobrenome;
+            if (contactData.email) document.getElementById('email').value = contactData.email;
+            if (contactData.cpf) {
+                var cpf = contactData.cpf.replace(/\D/g, '').substring(0, 11);
+                if (cpf.length > 9) cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                else if (cpf.length > 6) cpf = cpf.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                else if (cpf.length > 3) cpf = cpf.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                document.getElementById('cpf').value = cpf;
+            }
             if (contactData.telefone) {
                 var tel = contactData.telefone.replace(/\D/g, '');
                 if (tel.length === 11) tel = tel.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
@@ -864,6 +882,20 @@ function voltarComFallback(fallback = '../index.html') {
             }
 
             updateReviewSection();
+
+            // Se já tem todos os dados do endereço, pular formulário de comprador
+            if (contactData.nome && contactData.sobrenome && contactData.email && contactData.cpf && contactData.telefone) {
+                var bd = {
+                    nome: contactData.nome, sobrenome: contactData.sobrenome,
+                    nomeCompleto: contactData.nome + ' ' + contactData.sobrenome,
+                    email: contactData.email, cpf: contactData.cpf.replace(/\D/g, ''),
+                    telefone: contactData.telefone.replace(/\D/g, ''), data: new Date().toISOString()
+                };
+                localStorage.setItem('checkout_buyer', JSON.stringify(bd));
+                updateReviewSection();
+                document.getElementById('step-nfe').classList.add('hidden');
+                document.getElementById('step-review').classList.remove('hidden');
+            }
 
             // Máscaras
             document.getElementById('cpf').addEventListener('input', function(e) {

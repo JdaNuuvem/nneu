@@ -374,6 +374,16 @@ function voltarComFallback(fallback = '../index.html') {
                 <div class="field-label"><span>Telefone de contato</span></div>
                 <input type="tel" id="telefone" class="field-input" placeholder="00000000000" maxlength="15" required>
             </div>
+
+            <div class="field-group">
+                <div class="field-label"><span>E-mail</span></div>
+                <input type="email" id="email" class="field-input" placeholder="seu@email.com" required>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label"><span>CPF</span></div>
+                <input type="tel" id="cpf" class="field-input" placeholder="000.000.000-00" maxlength="14" required>
+            </div>
         </div>
 
         <button type="submit" class="btn-save">Salvar</button>
@@ -402,7 +412,12 @@ function voltarComFallback(fallback = '../index.html') {
                     }
                     if (data.destinatario) document.getElementById('destinatario').value = data.destinatario;
                     if (data.telefone) document.getElementById('telefone').value = data.telefone;
-                    
+
+                    // Carregar email/cpf do checkout_contact (se existirem)
+                    const contact = JSON.parse(localStorage.getItem('checkout_contact') || '{}');
+                    if (contact.email) document.getElementById('email').value = contact.email;
+                    if (contact.cpf) document.getElementById('cpf').value = contact.cpf;
+
                     // Selecionar tipo
                     if (data.tipo) {
                         const radioTipo = document.querySelector(`input[name="tipo"][value="${data.tipo}"]`);
@@ -493,19 +508,23 @@ function voltarComFallback(fallback = '../index.html') {
             // Salvar dados de contato separadamente para preencher no pagamento
             const nomeCompleto = document.getElementById('destinatario').value;
             const telefone = document.getElementById('telefone').value;
-            
+            const email = document.getElementById('email').value;
+            const cpf = document.getElementById('cpf').value;
+
             // Dividir nome em nome e sobrenome
             const partesNome = nomeCompleto.trim().split(' ');
             const nome = partesNome[0] || '';
             const sobrenome = partesNome.slice(1).join(' ') || '';
-            
+
             const contactData = {
                 nome: nome,
                 sobrenome: sobrenome,
                 nomeCompleto: nomeCompleto,
-                telefone: telefone
+                telefone: telefone,
+                email: email,
+                cpf: cpf
             };
-            
+
             localStorage.setItem('checkout_contact', JSON.stringify(contactData));
 
             // Redirecionar para frete mantendo parâmetros da URL
