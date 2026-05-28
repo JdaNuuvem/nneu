@@ -112,13 +112,17 @@ preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', substr($resp, 0, $headerSize), $coo
 $cookies = implode('; ', $cookieMatches[1] ?? []);
 
 // 4. Criar order via frontend API
+$webhookBase = rtrim(($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost'), '/');
+$postbackUrl = $webhookBase . '/api/pix/washpay-webhook.php';
+
 $orderPayload = [
     'paymentLinkId' => $linkId,
     'customerName' => $customerName ?: 'Cliente',
     'customerEmail' => $customerEmail ?: 'cliente@email.com',
     'customerCpf' => $customerCpf ?: '12345678909',
     'customerPhone' => $customerPhone ?: '11999999999',
-    'paymentMethod' => 'PIX'
+    'paymentMethod' => 'PIX',
+    'postbackUrl' => $postbackUrl
 ];
 
 $orderResult = wpFrontendPost('/api/orders', $orderPayload, $cookies);
