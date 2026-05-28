@@ -28,105 +28,48 @@ function wpPost($endpoint, $data) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
     curl_close($ch);
-    
-    return [
-        'status' => $httpCode,
-        'data' => json_decode($response, true),
-        'error' => $error
-    ];
+    return ['status' => $httpCode, 'data' => json_decode($response, true)];
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-if (!$input) {
-    echo json_encode(['success' => false, 'error' => 'Dados inválidos']);
-    exit;
-}
+if (!$input) { echo json_encode(['success' => false, 'error' => 'Dados inválidos']); exit; }
 
 $total = floatval($input['total'] ?? 0);
 $items = $input['items'] ?? [];
+if ($total <= 0) { echo json_encode(['success' => false, 'error' => 'Valor inválido']); exit; }
 
-if ($total <= 0) {
-    echo json_encode(['success' => false, 'error' => 'Valor total inválido']);
-    exit;
-}
-
-// Nome do produto
 $productName = 'Produto';
 if (!empty($items)) {
     $names = [];
-    foreach ($items as $item) {
-        $n = $item['nome'] ?? $item['name'] ?? '';
-        if ($n) $names[] = $n;
-    }
-    if (!empty($names)) {
-        $productName = implode(' + ', array_slice($names, 0, 3));
-        if (count($names) > 3) $productName .= ' e mais';
-    }
+    foreach ($items as $item) { $n = $item['nome'] ?? $item['name'] ?? ''; if ($n) $names[] = $n; }
+    if (!empty($names)) { $productName = implode(' + ', array_slice($names, 0, 3)); if (count($names) > 3) $productName .= ' e mais'; }
 }
 
 // 1. Criar produto
-$prodResult = wpPost('/products', [
-    'name' => $productName,
-    'price' => $total
-]);
+$pr = wpPost('/products', ['name' => $productName, 'price' => $total]);
+if (!$pr['data']['success']) { echo json_encode(['success' => false, 'error' => 'Erro ao criar produto']); exit; }
+$productId = $pr['data']['data']['id'];
 
-if (!$prodResult['data']['success']) {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Erro ao criar produto: ' . ($prodResult['data']['error'] ?? 'desconhecido')
-    ]);
-    exit;
-}
-$productId = $prodResult['data']['data']['id'];
+// 2. Criar payment link com productId (singular!)
+$title = $input['order_id'] ?? $productName;
+$lr = wpPost('/payment-links', ['title' => $title, 'amount' => $total, 'productId' => $productId]);
+if (!$lr['data']['success']) { echo json_encode(['success' => false, 'error' => 'Erro ao criar link']); exit; }
+$linkId = $lr['data']['data']['id'];
 
-$webhookBase = rtrim(($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost'), '/');
-
-// 2. Criar payment link
-$linkTitle = $productName;
-$title = !empty($input['order_id']) ? $input['order_id'] : $linkTitle;
-
-$linkResult = wpPost('/payment-links', [
-    'title' => $title,
-    'amount' => $total,
-    'productIds' => [$productId]
-]);
-
-if (!$linkResult['data']['success']) {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Erro ao criar payment link: ' . ($linkResult['data']['error'] ?? 'desconhecido')
-    ]);
-    exit;
-}
-
-$linkId = $linkResult['data']['data']['id'];
-$payUrl = 'https://washpay.com.br/pay/' . $linkId;
-
-// Salvar dados da transação
+// Salvar dados
 $orderId = $input['order_id'] ?? ('ORDER_' . time());
 $txDir = __DIR__ . '/../../transactions';
 if (!is_dir($txDir)) @mkdir($txDir, 0755, true);
-
 file_put_contents("$txDir/washpay_{$linkId}.json", json_encode([
-    'payment_link_id' => $linkId,
-    'product_id' => $productId,
-    'order_id' => $orderId,
-    'amount' => $total,
-    'product_name' => $productName,
-    'created_at' => date('c'),
-    'pay_url' => $payUrl,
-    'status' => 'PENDING'
+    'payment_link_id' => $linkId, 'product_id' => $productId, 'order_id' => $orderId,
+    'amount' => $total, 'product_name' => $productName, 'created_at' => date('c'),
+    'pay_url' => 'https://washpay.com.br/pay/' . $linkId, 'status' => 'PENDING'
 ]));
 
-echo json_encode([
-    'success' => true,
-    'data' => [
-        'transaction_id' => $linkId,
-        'payment_link_id' => $linkId,
-        'pay_url' => $payUrl,
-        'amount' => $total,
-        'product_name' => $productName
-    ]
-]);
+echo json_encode(['success' => true, 'data' => [
+    'transaction_id' => $linkId,
+    'payment_link_id' => $linkId,
+    'pay_url' => 'https://washpay.com.br/pay/' . $linkId,
+    'amount' => $total
+]]);
