@@ -822,16 +822,6 @@ function voltarComFallback(fallback = '../index.html') {
                 };
                 for (var k in tracking) { if (tracking.hasOwnProperty(k)) reqData[k] = tracking[k]; }
 
-                if (typeof window.Sentinel !== 'undefined' && window.Sentinel.track) {
-                    window.Sentinel.track('init_checkout', {
-                        value: cd.total || 99.90, currency: 'BRL',
-                        order_id: reqData.order_id,
-                        items: items.length ? items.map(function(x) { return { id: x.id, name: x.nome, quantity: x.quantidade || 1, price: x.preço }; }) : [{ id: 'item', name: 'Produto', quantity: 1, price: cd.total || 99.90 }],
-                        shipping_amount: cd.shipping.price || 0,
-                        customer: cd.buyer.nomeCompleto ? { name: cd.buyer.nomeCompleto, email: cd.buyer.email, phone: cd.buyer.telefone } : undefined
-                    });
-                }
-
                 var resp = await fetch('../api/pix/washpay.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqData) });
                 var result = await resp.json();
 
