@@ -1,0 +1,213 @@
+@media only screen and (min-width: 913px) {
+
+    /*desktop*/
+    .avisoDeCookies {
+        left: 35vw;
+        right: 35vw;
+        bottom: 30px;
+        width: 30vw;
+    }
+
+    #body {
+        background-color: #f5f5f5;
+    }
+
+    .header {
+        width: 100%;
+        background-color: #fff159;
+        position: relative;
+    }
+
+    .headerMobile {
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+        width: 913px;
+        height: 48px;
+    }
+
+    .headerDesktop {
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+        width: 913px;
+        height: 48px;
+    }
+
+    #botaoMenu {
+        display: none;
+    }
+
+    #menu {
+        margin: 0 auto;
+        width: 913px;
+    }
+
+    main {
+        padding: 10px;
+        border-radius: 6px;
+        margin: 0 auto;
+        margin-top: 25px;
+        min-width: 893px;
+        max-width: 893px;
+    }
+
+    #modalCaracteristicas {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        margin: 0 auto;
+        width: 913px;
+        height: 100vh;
+    }
+
+    #modalVendedor {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        margin: 0 auto;
+        width: 913px;
+        height: 100vh;
+    }
+
+    #modalVariações {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        margin: 0 auto;
+        width: 913px;
+        height: 100vh;
+    }
+
+    .boxShadow {
+        box-shadow: 0px -10px 10px 1px rgba(153, 153, 153, 1);
+    }
+
+    #modalQuantidade {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        margin: 0 auto;
+        width: 913px;
+        height: 100vh;
+    }
+
+    .carrossel {
+        background-color: #ffffff;
+    }
+
+    .carrossel2 {
+        margin: 0;
+        flex-grow: 1;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    footer {
+        margin: 0 auto;
+        width: 913px;
+        display: flex;
+    }
+}
+
+@media only screen and (max-width: 912px) {
+
+    /*mobile*/
+    .avisoDeCookies {
+        flex-grow: 1;
+        bottom: 30px;
+        right: 20px;
+        left: 20px;
+    }
+
+    .header {
+        width: 100%;
+        background-color: #fff159;
+        position: relative;
+    }
+
+    .headerMobile {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 48px;
+    }
+
+    .headerDesktop {
+        display: none;
+    }
+
+    #botaoMenu {
+        width: 45px;
+        display: flex;
+        align-items: center;
+    }
+
+    #menu {
+        width: 100%;
+    }
+
+    main {
+        width: 100%;
+    }
+
+    #modalCaracteristicas {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+    }
+
+    #modalVendedor {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+    }
+
+    #modalVariações {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, .8)
+    }
+
+    #modalQuantidade {
+        bottom: 0;
+        right: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, .8)
+    }
+
+    .carrossel {
+        background-color: #ededed;
+    }
+
+    .carrossel2 {
+        margin: 0;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    footer {
+        width: 100%;
+        display: flex;
+    }
+}

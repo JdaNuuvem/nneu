@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script src="https://cdn.sentineltracking.io/sdk.js?pixel_id=sk_25fcb892d1b3fe7c57ee7bffcef94732707e491f48b380d0" async></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Sentinel</title>
+    <style>
+        :root {
+            --bg: #0d1117; --card: #151b23; --elevated: #1c2128;
+            --border: #30363d; --text: #e6edf3; --t2: #8b949e; --t3: #484f58;
+            --blue: #2f81f7; --green: #3fb950; --red: #f85149; --orange: #d29922;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background: var(--bg); color: var(--text); }
+
+        .bar {
+            background: var(--card); border-bottom: 1px solid var(--border); padding: 8px 16px;
+            display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 100;
+        }
+        .bar h1 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .bar h1 small { font-size: 10px; color: var(--t2); font-weight: 400; font-family: monospace; }
+        .bar-r { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+
+        .chip {
+            font-size: 10px; padding: 2px 10px; border-radius: 12px;
+            background: var(--bg); border: 1px solid var(--border); color: var(--t2);
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .dot.g { background: var(--green); box-shadow: 0 0 6px #3fb95066; }
+        .dot.gr { background: var(--t3); }
+
+        .wrap { max-width: 760px; margin: 0 auto; padding: 12px 16px; }
+
+        .cx {
+            background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+            padding: 12px 14px; margin-bottom: 8px;
+        }
+        .cx-t {
+            font-size: 12px; font-weight: 600; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        .fs { display: flex; flex-direction: column; gap: 4px; }
+        .f {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+            padding: 8px 10px; cursor: pointer; transition: all .12s;
+        }
+        .f:hover { border-color: var(--blue); }
+        .f.r { border-color: var(--blue); box-shadow: 0 0 0 1px #1f6feb44; }
+        .f .nm { font-weight: 600; font-size: 13px; flex: 1; }
+        .f .rt { font-size: 10px; color: var(--t2); }
+        .f .st { display: flex; gap: 2px; flex-shrink: 0; }
+        .f .st span {
+            font-size: 8px; padding: 2px 4px; border-radius: 3px; font-family: monospace;
+            background: var(--bg); border: 1px solid var(--border); color: var(--t3); transition: all .2s;
+        }
+        .f .st span.on { background: #1f6feb22; border-color: var(--blue); color: var(--blue); font-weight: 600; }
+        .f .st span.ok { background: #23863622; border-color: #23863644; color: var(--green); }
+
+        .log {
+            background: var(--bg); border: 1px solid var(--border); border-radius: 5px;
+            height: 180px; overflow-y: auto; font-family: monospace; font-size: 10px; line-height: 1.5;
+        }
+        .log::-webkit-scrollbar { width: 4px; }
+        .log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .log .e { padding: 2px 6px; border-bottom: 1px solid #21262d; display: flex; gap: 4px; align-items: start; }
+        .log .e .t { color: var(--t3); flex-shrink: 0; }
+        .log .e .l {
+            font-size: 7px; font-weight: 600; padding: 0 4px; border-radius: 2px; flex-shrink: 0; margin-top: 1px;
+        }
+        .l-s { background: #23863622; color: var(--green); border: 1px solid #23863644; }
+        .l-x { background: #d2992222; color: var(--orange); border: 1px solid #d2992244; }
+        .l-e { background: #da363322; color: var(--red); border: 1px solid #da363344; }
+        .log .e .m { flex: 1; min-width: 0; word-break: break-word; }
+
+        .log-empty { padding: 20px; text-align: center; color: var(--t3); font-size: 11px; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px;
+            border: 1px solid var(--border); border-radius: 4px; font-size: 10px; font-weight: 600; cursor: pointer;
+            background: var(--elevated); color: var(--text); transition: all .12s;
+        }
+        .btn:hover { border-color: var(--t2); }
+        .btn:disabled { opacity: .3; }
+        .btn-p { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .btn-p:hover { opacity: .85; }
+
+        .toasts { position: fixed; bottom: 12px; right: 12px; z-index: 999; display: flex; flex-direction: column; gap: 4px; }
+        .toast {
+            background: var(--card); border: 1px solid var(--border); border-radius: 5px;
+            padding: 6px 12px; font-size: 11px; box-shadow: 0 4px 16px #00000066;
+            animation: tin .2s ease; max-width: 300px;
+        }
+        .toast.out { animation: tout .2s ease forwards; }
+        .toast.ok { border-left: 3px solid var(--green); }
+        .toast.no { border-left: 3px solid var(--red); }
+        .toast.in { border-left: 3px solid var(--blue); }
+        @keyframes tin { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes tout { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+        .flex { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+        .quick-event {
+            display: flex; gap: 3px; flex-wrap: wrap;
+        }
+        .quick-event button {
+            font-size: 9px; padding: 3px 8px; border: 1px solid var(--border);
+            border-radius: 4px; background: var(--bg); color: var(--t2); cursor: pointer;
+        }
+        .quick-event button:hover { border-color: var(--blue); color: var(--blue); }
+
+        .pixel-id {
+            font-family: monospace; font-size: 12px; color: var(--text);
+            background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+            padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+        }
+        .pixel-id span { color: var(--t2); font-weight: 600; font-size: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="bar">
+    <h1>🔬 Sentinel <small id="header-pixel">sk_25fcb…380d0</small></h1>
+    <div class="bar-r">
+        <span class="chip"><span class="dot gr" id="ds"></span> SDK</span>
+        <span class="chip">📦 <strong id="lc">0</strong></span>
+    </div>
+</div>
+
+<div class="wrap">
+
+    <!-- CONFIG -->
+    <div class="cx">
+        <div class="cx-t">🔌 Configuração</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+            <div><label style="font-size:10px;color:var(--t2);display:block;margin-bottom:2px">Webhook URL</label>
+                <input type="text" id="i-webhook" value="https://api.specterfilter.com/sentinel-bff/api/events" style="font-family:monospace;font-size:10px;width:100%;padding:5px 7px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text)">
+            </div>
+            <div><label style="font-size:10px;color:var(--t2);display:block;margin-bottom:2px">Pixel ID</label>
+                <input type="text" id="i-pixel" value="sk_25fcb892d1b3fe7c57ee7bffcef94732707e491f48b380d0" style="font-family:monospace;font-size:11px;width:100%;padding:5px 7px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text)">
+            </div>
+            <div class="flex" style="margin-top:2px">
+                <button class="btn" onclick="aplicarConfig()">Aplicar</button>
+                <button class="btn" onclick="testarWebhook()">▶ Testar</button>
+                <button class="btn" onclick="copiarTexto(document.getElementById('i-webhook').value)">Copiar webhook</button>
+            </div>
+        </div>
+        <details style="margin-top:6px">
+            <summary style="cursor:pointer;color:var(--t2);font-size:10px">Payload do último evento</summary>
+            <div style="margin-top:4px;padding:6px;background:var(--bg);border-radius:4px;color:var(--t2);font-size:10px;font-family:monospace;line-height:1.5;white-space:pre-wrap;max-height:150px;overflow:auto" id="payload-preview">Clique em um evento para ver o payload</div>
+        </details>
+    </div>
+
+    <!-- FUNIS -->
+    <div class="cx">
+        <div class="cx-t">
+            🔁 Funis
+            <span style="font-size:9px;color:var(--t2);font-weight:400;margin-left:auto" id="f-status">escolha um funil</span>
+        </div>
+        <div class="fs">
+            <div class="f" data-f="igaming_register" onclick="fire('igaming_register')">
+                <span class="dot gr" id="di-igaming_register"></span>
+                <div class="nm">igaming_register</div>
+                <div class="rt">page_view → completed_register</div>
+                <div class="st" id="si-igaming_register">
+                    <span data-i="0">page_view</span>
+                    <span data-i="1">completed_register</span>
+                </div>
+            </div>
+            <div class="f" data-f="igaming_purchase" onclick="fire('igaming_purchase')">
+                <span class="dot gr" id="di-igaming_purchase"></span>
+                <div class="nm">igaming_purchase</div>
+                <div class="rt">page_view → completed_register → login → add_to_cart → init_checkout → purchase</div>
+                <div class="st" id="si-igaming_purchase">
+                    <span data-i="0">page_view</span><span data-i="1">completed_register</span>
+                    <span data-i="2">login</span><span data-i="3">add_to_cart</span>
+                    <span data-i="4">init_checkout</span><span data-i="5">purchase</span>
+                </div>
+            </div>
+            <div class="f" data-f="marketplace" onclick="fire('marketplace')">
+                <span class="dot gr" id="di-marketplace"></span>
+                <div class="nm">marketplace</div>
+                <div class="rt">page_view → add_to_cart → init_checkout → purchase</div>
+                <div class="st" id="si-marketplace">
+                    <span data-i="0">page_view</span><span data-i="1">add_to_cart</span>
+                    <span data-i="2">init_checkout</span><span data-i="3">purchase</span>
+                </div>
+            </div>
+            <div class="f" data-f="registration" onclick="fire('registration')">
+                <span class="dot gr" id="di-registration"></span>
+                <div class="nm">registration</div>
+                <div class="rt">page_view → complete_registration</div>
+                <div class="st" id="si-registration">
+                    <span data-i="0">page_view</span>
+                    <span data-i="1">complete_registration</span>
+                </div>
+            </div>
+            <div class="f" data-f="subscription" onclick="fire('subscription')">
+                <span class="dot gr" id="di-subscription"></span>
+                <div class="nm">subscription</div>
+                <div class="rt">page_view → init_checkout → subscribe</div>
+                <div class="st" id="si-subscription">
+                    <span data-i="0">page_view</span><span data-i="1">init_checkout</span>
+                    <span data-i="2">subscribe</span>
+                </div>
+            </div>
+            <div class="f" data-f="registration_subscription" onclick="fire('registration_subscription')">
+                <span class="dot gr" id="di-registration_subscription"></span>
+                <div class="nm">registration_subscription</div>
+                <div class="rt">page_view → complete_registration → init_checkout → subscribe</div>
+                <div class="st" id="si-registration_subscription">
+                    <span data-i="0">page_view</span><span data-i="1">complete_registration</span>
+                    <span data-i="2">init_checkout</span><span data-i="3">subscribe</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex" style="margin-top:6px">
+            <button class="btn btn-p" onclick="todos()" id="bt-todos">▶ Disparar todos</button>
+            <button class="btn" onclick="logClear()">🗑 Limpar</button>
+        </div>
+    </div>
+
+    <!-- EVENTO RÁPIDO -->
+    <div class="cx">
+        <div class="cx-t">⚡ Evento único</div>
+        <div class="quick-event">
+            <button onclick="rapido('page_view')">page_view</button>
+            <button onclick="rapido('completed_register')">completed_register</button>
+            <button onclick="rapido('complete_registration')">complete_registration</button>
+            <button onclick="rapido('login')">login</button>
+            <button onclick="rapido('add_to_cart')">add_to_cart</button>
+            <button onclick="rapido('init_checkout')">init_checkout</button>
+            <button onclick="rapido('purchase')">purchase</button>
+            <button onclick="rapido('subscribe')">subscribe</button>
+        </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="cx">
+        <div class="cx-t">📋 Log <span style="font-size:9px;color:var(--t2);font-weight:400" id="log-n"></span></div>
+        <div class="log" id="log"><div class="log-empty">Clique em um funil ou evento para disparar.</div></div>
+    </div>
+
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+(function() {
+    'use strict';
+
+    var LOG = document.getElementById('log');
+    var ENTRIES = [];
+    var COUNT = 0;
+
+    function tt(msg, t) { t = t || 'in';
+        var el = document.getElementById('toasts');
+        var x = document.createElement('div'); x.className = 'toast ' + t; x.textContent = msg;
+        el.appendChild(x);
+        setTimeout(function() { x.className += ' out'; setTimeout(function() { if (x.parentNode) x.parentNode.removeChild(x); }, 200); }, 2500);
+    }
+
+    function log(tag, cls, msg) {
+        var tm = new Date().toLocaleTimeString('pt-BR', { hour12: false });
+        var e = document.createElement('div'); e.className = 'e';
+        var em = LOG.querySelector('.log-empty'); if (em) em.remove();
+        e.innerHTML = '<span class="t">' + tm + '</span><span class="l l-' + cls + '">' + tag + '</span><span class="m">' + msg.replace(/</g,'&lt;') + '</span>';
+        LOG.appendChild(e); LOG.scrollTop = LOG.scrollHeight;
+        ENTRIES.push(e); COUNT++;
+        document.getElementById('lc').textContent = COUNT;
+        document.getElementById('log-n').textContent = COUNT + ' eventos';
+    }
+
+    window.logClear = function() {
+        LOG.innerHTML = '<div class="log-empty">Clique em um funil ou evento para disparar.</div>';
+        ENTRIES = []; COUNT = 0;
+        document.getElementById('lc').textContent = '0';
+        document.getElementById('log-n').textContent = '';
+    };
+
+    function lx(m) { log('SIS', 'x', m); }
+    function ls(m) { log('S', 's', m); }
+    function le(m) { log('ERRO', 'e', m); }
+
+    window.Sentinel = window.Sentinel || { track: function(ev, d) { ls('Sentinel.track("'+ev+'") — (mock)'); } };
+
+    function getWebhookUrl() {
+        var raw = document.getElementById('i-webhook').value.trim();
+        if (!raw) raw = 'https://api.specterfilter.com/sentinel-bff/api/events';
+        return '../api/proxy.php?url=' + encodeURIComponent(raw);
+    }
+
+    function getPixelId() {
+        return document.getElementById('i-pixel').value.trim() || 'sk_25fcb892d1b3fe7c57ee7bffcef94732707e491f48b380d0';
+    }
+
+    window.aplicarConfig = function() {
+        var pid = getPixelId();
+        document.getElementById('header-pixel').textContent = pid.substring(0, 10) + '…' + pid.substring(pid.length - 4);
+        document.getElementById('ds').className = 'dot gr';
+        lx('Config atualizada — pixel: ' + pid.substring(0, 20) + '…');
+        tt('Configuração aplicada', 'ok');
+    };
+
+    function loadCheckoutData() {
+        var d = { customer: null, order_id: '', total: 0, items: [] };
+        try {
+            var b = JSON.parse(localStorage.getItem('checkout_buyer') || '{}');
+            var c = JSON.parse(localStorage.getItem('checkout_data') || '{}');
+            var nome = b.name || c.nome || '';
+            var email = b.email || c.email || '';
+            var phone = b.phone || c.telefone || '';
+            var cpf = b.cpf || b.document || c.cpf || '';
+            if (nome || email) {
+                d.customer = { name: nome + ' ' + (b.sobrenome || c.sobrenome || ''), email: email, phone: phone };
+                if (cpf) d.customer.cpf = cpf;
+            }
+        } catch(e) {}
+        try { d.order_id = localStorage.getItem('transaction_id') || ''; } catch(e) {}
+        try { d.total = parseFloat(localStorage.getItem('checkout_total') || '0'); } catch(e) {}
+        try { d.items = JSON.parse(localStorage.getItem('checkout_items') || '[]'); } catch(e) {}
+        return d;
+    }
+
+    function buildPayload(evt) {
+        var p = {};
+        var cd = loadCheckoutData();
+        var hasCust = cd.customer && cd.customer.name && cd.customer.email;
+
+        if (hasCust && ['completed_register','complete_registration','login','init_checkout','purchase','subscribe'].indexOf(evt) !== -1) {
+            p.customer = cd.customer;
+        }
+        if (['add_to_cart','init_checkout','purchase'].indexOf(evt) !== -1) {
+            p.value = cd.total > 0 ? cd.total : 100;
+            p.currency = 'BRL';
+            if (cd.items && cd.items.length > 0) {
+                p.items = cd.items.map(function(x) { return { id: x.id || 'item', name: x.name || 'Produto', quantity: x.quantity || 1, price: x.price || 0 }; });
+            } else {
+                p.items = [{ id: 'test_item', name: 'Produto Teste', quantity: 1, price: p.value }];
+            }
+            if (evt !== 'add_to_cart') p.order_id = cd.order_id || ('T-' + Date.now());
+        }
+        if (evt === 'init_checkout' || evt === 'purchase') { p.shipping_amount = 0; if (hasCust) p.customer = cd.customer; }
+        if (evt === 'login' && hasCust) p.customer = { email: cd.customer.email || 'test@e.com' };
+        return p;
+    }
+
+    function getEvents(slug) {
+        var m = {
+            marketplace: ['page_view','add_to_cart','init_checkout','purchase'],
+            registration: ['page_view','complete_registration'],
+            subscription: ['page_view','init_checkout','subscribe'],
+            registration_subscription: ['page_view','complete_registration','init_checkout','subscribe'],
+            igaming_register: ['page_view','completed_register'],
+            igaming_purchase: ['page_view','completed_register','login','add_to_cart','init_checkout','purchase']
+        };
+        return m[slug] || [];
+    }
+
+    function resetSteps(slug) {
+        var el = document.getElementById('si-' + slug); if (!el) return;
+        el.querySelectorAll('span').forEach(function(s) { s.classList.remove('on','ok'); });
+    }
+    function stepOn(slug, i) {
+        var el = document.getElementById('si-' + slug); if (!el) return;
+        el.querySelectorAll('span').forEach(function(s, idx) {
+            if (idx < i) { s.classList.add('ok'); s.classList.remove('on'); }
+            else if (idx === i) { s.classList.add('on'); s.classList.remove('ok'); }
+            else { s.classList.remove('on','ok'); }
+        });
+    }
+    function stepsDone(slug) {
+        var el = document.getElementById('si-' + slug); if (!el) return;
+        el.querySelectorAll('span').forEach(function(s) { s.classList.remove('on'); s.classList.add('ok'); });
+    }
+
+    var VISITOR_ID = 'v_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+
+    function eventId() {
+        return 'e_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 8);
+    }
+
+    function doTrack(evt, payload) {
+        var url = getWebhookUrl();
+        var apiKey = getPixelId();
+        var body = {
+            api_key: apiKey,
+            event_name: evt,
+            event_id: eventId(),
+            visitor_id: VISITOR_ID,
+            data: payload
+        };
+        var pStr = JSON.stringify(payload).substring(0, 100);
+        ls(evt + ' ' + pStr);
+
+        document.getElementById('payload-preview').textContent = JSON.stringify(body, null, 2);
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+        .then(function(r) {
+            return r.text().then(function(t) {
+                lx(evt + ' → ' + r.status + ' ' + t.substring(0, 120));
+                return t;
+            });
+        })
+        .catch(function(e) {
+            le(evt + ': ' + e.message);
+        });
+    }
+
+    window.fire = function(slug) {
+        var card = document.querySelector('.f[data-f="' + slug + '"]');
+        if (card && card.classList.contains('r')) { tt('Funil já em execução', 'no'); return; }
+        if (card) card.classList.add('r');
+        var dot = document.getElementById('di-' + slug);
+        if (dot) dot.className = 'dot g';
+        resetSteps(slug);
+        lx('▶ ' + slug);
+        document.getElementById('f-status').textContent = '▶ ' + slug + '...';
+
+        var eventos = getEvents(slug);
+        var delay = 0;
+        eventos.forEach(function(evt, i) {
+            setTimeout(function() {
+                stepOn(slug, i);
+                doTrack(evt, buildPayload(evt));
+                if (i === eventos.length - 1) {
+                    setTimeout(function() {
+                        if (dot) dot.className = 'dot gr';
+                        if (card) card.classList.remove('r');
+                        stepsDone(slug);
+                        lx('✓ ' + slug + ' (' + eventos.length + ' eventos)');
+                        document.getElementById('f-status').textContent = '✓ ' + slug;
+                        tt('Funil ' + slug + ' concluído', 'ok');
+                    }, 400);
+                }
+            }, delay);
+            delay += 700;
+        });
+    };
+
+    window.todos = function() {
+        var lista = ['igaming_register','igaming_purchase','marketplace','registration','subscription','registration_subscription'];
+        document.getElementById('bt-todos').disabled = true;
+        tt('Disparando 6 funis...', 'in');
+        var d = 0;
+        lista.forEach(function(s) { setTimeout(function() { fire(s); }, d); d += 4500; });
+        setTimeout(function() { document.getElementById('bt-todos').disabled = false; document.getElementById('f-status').textContent = '6 funis concluídos'; tt('6 funis disparados', 'ok'); }, d + 500);
+    };
+
+    window.rapido = function(evt) {
+        doTrack(evt, buildPayload(evt));
+        tt('Evento: ' + evt, 'ok');
+    };
+
+    window.copiarTexto = function(texto) {
+        if (navigator.clipboard) navigator.clipboard.writeText(texto).then(function() { tt('Copiado', 'ok'); });
+    };
+
+    window.testarWebhook = function() {
+        var url = getWebhookUrl();
+        var p = buildPayload('purchase');
+        var body = { api_key: getPixelId(), event_name: 'purchase', event_id: eventId(), visitor_id: VISITOR_ID, data: p };
+        lx('Testando webhook: ' + url);
+        tt('Enviando teste...', 'in');
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+        .then(function(r) { return r.text().then(function(t) { return { status: r.status, body: t }; }); })
+        .then(function(d) {
+            lx('Resposta: ' + d.status + ' ' + d.body.substring(0, 120));
+            tt('Teste ' + (d.status < 400 ? 'ok' : 'falhou'), d.status < 400 ? 'ok' : 'no');
+        })
+        .catch(function(e) {
+            le('Erro: ' + e.message);
+            tt('Erro no webhook', 'no');
+        });
+    };
+
+    // Init
+    lx('Página carregada');
+    aplicarConfig();
+
+    var cd = loadCheckoutData();
+    if (cd.customer) lx('Cliente no checkout: ' + cd.customer.name);
+    if (cd.order_id) lx('Pedido: ' + cd.order_id + ' | R$ ' + (cd.total || 0).toFixed(2));
+
+})();
+</script>
+</body>
+</html>

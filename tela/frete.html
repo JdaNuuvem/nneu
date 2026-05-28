@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <script src="https://cdn.jsdelivr.net/gh/xTracky/static@latest/utm-handler.js" data-token="9bb490c9-893a-4919-bf12-dbb15e467ca8"></script>
+    <script src="../js/utm.js"></script>
+    <script src="../api/xtracky-utm-helper.js"></script>
+    <script src="fix-utm-source.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolha o frete</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="../site_config.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #fff;
+            padding-bottom: 100px;
+            margin: 0;
+            font-family: 'Proxima Nova', Arial, sans-serif;
+        }
+
+        .header-yellow {
+            background: #ffe600;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-yellow .back-btn {
+            color: #333;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .header-yellow .logo {
+            height: 28px;
+            margin-left: auto;
+        }
+
+        .page-content {
+            padding: 16px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 400;
+            color: #333;
+            margin: 0 0 8px;
+        }
+
+        .address-line {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .address-line i {
+            color: #3483fa;
+            font-size: 14px;
+        }
+
+        .shipping-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .shipping-header {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .shipping-header .badge {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #333;
+            gap: 6px;
+        }
+
+        .shipping-header .badge i {
+            color: #00a650;
+        }
+
+        .shipping-header .badge strong {
+            color: #00a650;
+        }
+
+        .shipping-header .product-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: auto;
+            border: 1px solid #eee;
+        }
+
+        .shipping-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            gap: 14px;
+            transition: background 0.15s;
+        }
+
+        .shipping-option:last-child {
+            border-bottom: none;
+        }
+
+        .shipping-option:hover {
+            background: #f9f9f9;
+        }
+
+        .shipping-option.selected {
+            background: #f0f7ff;
+        }
+
+        .radio-circle {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #bbb;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .shipping-option.selected .radio-circle {
+            border-color: #3483fa;
+            background: #3483fa;
+        }
+
+        .shipping-option.selected .radio-circle::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .shipping-info {
+            flex: 1;
+        }
+
+        .shipping-info .date {
+            font-size: 15px;
+            color: #333;
+        }
+
+        .shipping-price {
+            font-size: 15px;
+            font-weight: 600;
+            color: #00a650;
+            white-space: nowrap;
+        }
+
+        .shipping-price.paid {
+            color: #333;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 14px 16px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+            z-index: 100;
+            border-top: 1px solid #eee;
+        }
+
+        .bottom-bar .price-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .bottom-bar .price-line .value {
+            font-weight: 600;
+        }
+
+        .btn-continue {
+            width: 100%;
+            height: 48px;
+            background: #3483fa;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-continue:active {
+            background: #2968c8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header-yellow">
+    <a href="#" class="back-btn" onclick="event.preventDefault(); voltarComFallback('endereco.html');">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <img src="../images/mercado-livre-logo.png" class="logo" alt="Mercado Livre">
+</header>
+<script>
+function voltarComFallback(fallback = '../index.html') {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = getUrlWithUtm(fallback);
+    }
+}
+</script>
+
+
+    <div class="page-content">
+        <h1 class="page-title">Escolha quando sua compra chegará</h1>
+
+        <div class="address-line">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="address-text">Envio para ...</span>
+        </div>
+
+        <div class="shipping-card">
+            <div class="shipping-header">
+                <div class="badge">
+                    <i class="fas fa-bolt"></i>
+                    <span>Envio 1 |</span>
+                    <strong>FULL</strong>
+                </div>
+                <img id="product-img" class="product-img" src="" alt="">
+            </div>
+            <div id="shipping-options">
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="price-line">
+            <span>Frete</span>
+            <span class="value" id="selected-price">Grátis</span>
+        </div>
+        <button class="btn-continue" id="btn-continue">Continuar</button>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Carregar dados do checkout
+        const checkoutData = JSON.parse(localStorage.getItem('checkout_data') || '{}');
+        
+        // Carregar dados do carrinho do localStorage
+        let cartItems = [];
+        let cartTotal = 0;
+        try {
+            cartItems = JSON.parse(localStorage.getItem('carrinho') || '[]');
+            
+            // Calcular total do carrinho
+            cartTotal = cartItems.reduce((total, item) => {
+                // Verificar diferentes formatos de preço
+                if (item.preço_total) {
+                    return total + parseFloat(item.preço_total);
+                } else if (item.preço_unitario && item.quantidade) {
+                    return total + (parseFloat(item.preço_unitario) * parseInt(item.quantidade));
+                } else if (item.price && item.quantity) {
+                    return total + (parseFloat(item.price) * parseInt(item.quantity));
+                }
+                return total;
+            }, 0);
+            
+            // Se o carrinho estiver vazio, tentar pegar do checkout_total anterior
+            if (cartTotal === 0) {
+                cartTotal = parseFloat(localStorage.getItem('checkout_total') || '0');
+            }
+            
+            console.log('Total do carrinho calculado:', cartTotal.toFixed(2));
+            
+        } catch (e) {
+            console.log('Erro ao carregar carrinho:', e);
+            cartItems = [];
+            // Tentar pegar valor anterior
+            cartTotal = parseFloat(localStorage.getItem('checkout_total') || '0');
+        }
+
+        // Salvar o total do carrinho para uso posterior
+        if (cartTotal > 0) {
+            localStorage.setItem('cart_total', cartTotal.toFixed(2));
+        }
+
+        // Carregar dados do produto do SiteConfig
+        let product = null;
+        let productId = null;
+        
+        // Tentar pegar o produto ID da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        productId = urlParams.get('produto-id');
+        
+        // Se não tem na URL, pegar do carrinho
+        if (!productId && cartItems.length > 0) {
+            productId = cartItems[0]?.fullid || cartItems[0]?.id;
+        }
+        
+        // Buscar produto no SiteConfig
+        if (productId && typeof SiteConfig !== 'undefined') {
+            product = SiteConfig.products?.find(p => 
+                p.id === productId || 
+                p.fullid === productId ||
+                p.sku === productId
+            );
+        }
+
+        // Se não encontrou, usar produto padrão do SiteConfig
+        if (!product && typeof SiteConfig !== 'undefined' && SiteConfig.products?.length > 0) {
+            product = SiteConfig.products[0];
+        }
+
+        // Exibir endereço
+        if (checkoutData.logradouro && checkoutData.numero) {
+            document.getElementById('address-text').textContent = 
+                `Envio para ${checkoutData.logradouro}, ${checkoutData.numero}`;
+            
+            if (checkoutData.complemento) {
+                document.getElementById('address-text').textContent += ` - ${checkoutData.complemento}`;
+            }
+        }
+
+        // Exibir imagem do produto
+        if (product && product.images && product.images[0]) {
+            document.getElementById('product-img').src = product.images[0];
+        } else if (cartItems[0] && cartItems[0].imagem) {
+            document.getElementById('product-img').src = cartItems[0].imagem;
+        } else if (cartItems[0] && cartItems[0].image) {
+            document.getElementById('product-img').src = cartItems[0].image;
+        }
+
+        // Renderizar opções de frete
+        const container = document.getElementById('shipping-options');
+        let shippingOptions = [];
+        
+        // Usar opções do produto ou padrão
+        if (product && product.shipping && product.shipping.length > 0) {
+            shippingOptions = product.shipping;
+        } else {
+            // Opções padrão
+            shippingOptions = [
+                { id: 'express', name: 'Entrega Expressa', price: 9.90, daysMin: 1, daysMax: 2 },
+                { id: 'standard', name: 'Entrega Padrão', price: 0, daysMin: 3, daysMax: 7 },
+                { id: 'economy', name: 'Entrega Econômica', price: 4.90, daysMin: 5, daysMax: 10 }
+            ];
+        }
+
+        if (shippingOptions.length > 0) {
+            container.innerHTML = shippingOptions.map((opt, idx) => {
+                const dateText = getDateRange(opt.daysMin, opt.daysMax);
+                const price = parseFloat(opt.price || 0);
+                const priceText = price === 0 ? 'Grátis' : `R$ ${price.toFixed(2).replace('.', ',')}`;
+                const selected = idx === 1 ? 'selected' : ''; // Padrão: segunda opção (frete grátis)
+                const paidClass = price > 0 ? 'paid' : '';
+
+                return `
+                    <div class="shipping-option ${selected}" data-id="${opt.id}" data-price="${price}" data-days-min="${opt.daysMin}" data-days-max="${opt.daysMax}">
+                        <div class="radio-circle"></div>
+                        <div class="shipping-info">
+                            <div class="date">${dateText}</div>
+                        </div>
+                        <span class="shipping-price ${paidClass}">${priceText}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // Selecionar a opção padrão
+            const defaultOption = container.querySelector('.shipping-option.selected');
+            if (defaultOption) {
+                updatePrice(defaultOption);
+                saveShippingOption(defaultOption, cartTotal);
+            }
+        }
+
+        // Atualizar preço ao selecionar opção
+        container.querySelectorAll('.shipping-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                container.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                updatePrice(opt);
+                saveShippingOption(opt, cartTotal);
+            });
+        });
+
+        function updatePrice(selectedOption) {
+            const price = parseFloat(selectedOption?.dataset?.price || 0);
+            document.getElementById('selected-price').textContent =
+                price === 0 ? 'Grátis' : `R$ ${price.toFixed(2).replace('.', ',')}`;
+        }
+
+        function saveShippingOption(selectedOption, cartTotalValue) {
+            const shippingData = {
+                id: selectedOption?.dataset?.id,
+                price: parseFloat(selectedOption?.dataset?.price || 0),
+                daysMin: parseInt(selectedOption?.dataset?.daysMin || 3),
+                daysMax: parseInt(selectedOption?.dataset?.daysMax || 7)
+            };
+            
+            console.log('Salvando frete:', shippingData);
+            
+            // Salvar dados de frete
+            localStorage.setItem('checkout_shipping', JSON.stringify(shippingData));
+            
+            // Se não temos cartTotalValue, tentar obter de várias fontes
+            if (!cartTotalValue || cartTotalValue === 0) {
+                // 1. Tentar do cart_total salvo anteriormente
+                cartTotalValue = parseFloat(localStorage.getItem('cart_total') || '0');
+                
+                // 2. Tentar do checkout_total anterior
+                if (cartTotalValue === 0) {
+                    cartTotalValue = parseFloat(localStorage.getItem('checkout_total') || '0');
+                }
+                
+                // 3. Tentar recalcular do carrinho
+                if (cartTotalValue === 0) {
+                    try {
+                        const cartItems = JSON.parse(localStorage.getItem('carrinho') || '[]');
+                        cartTotalValue = cartItems.reduce((total, item) => {
+                            if (item.preço_total) return total + parseFloat(item.preço_total);
+                            if (item.preço_unitario && item.quantidade) return total + (parseFloat(item.preço_unitario) * parseInt(item.quantidade));
+                            if (item.price && item.quantity) return total + (parseFloat(item.price) * parseInt(item.quantity));
+                            return total;
+                        }, 0);
+                    } catch (e) {
+                        console.log('Erro ao recalcular carrinho:', e);
+                    }
+                }
+                
+                // 4. Se ainda zero, usar valor padrão
+                if (cartTotalValue === 0) {
+                    cartTotalValue = 2386.00; // Valor de fallback
+                }
+            }
+            
+            // Garantir que temos um valor válido
+            if (isNaN(cartTotalValue) || cartTotalValue <= 0) {
+                cartTotalValue = 2386.00;
+            }
+            
+            // Salvar subtotal (mesmo valor do carrinho, sem frete)
+            localStorage.setItem('checkout_subtotal', cartTotalValue.toFixed(2));
+            
+            // Calcular total com frete
+            const total = cartTotalValue + shippingData.price;
+            localStorage.setItem('checkout_total', total.toFixed(2));
+            
+            // Salvar também o cart_total para referência futura
+            localStorage.setItem('cart_total', cartTotalValue.toFixed(2));
+            
+            console.log('Dados finais salvos no localStorage:');
+            console.log('- Cart Total:', cartTotalValue.toFixed(2));
+            console.log('- Subtotal:', localStorage.getItem('checkout_subtotal'));
+            console.log('- Frete:', shippingData.price.toFixed(2));
+            console.log('- Total:', localStorage.getItem('checkout_total'));
+        }
+
+        function getDateRange(min, max) {
+            const days = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+            const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+            const d1 = new Date();
+            const d2 = new Date();
+            d1.setDate(d1.getDate() + min);
+            d2.setDate(d2.getDate() + max);
+
+            if (d1.getMonth() === d2.getMonth()) {
+                return `Entre ${days[d1.getDay()]} ${d1.getDate()} e ${days[d2.getDay()]} ${d2.getDate()} de ${months[d1.getMonth()]}`;
+            } else {
+                return `Entre ${days[d1.getDay()]} ${d1.getDate()} de ${months[d1.getMonth()]} e ${days[d2.getDay()]} ${d2.getDate()} de ${months[d2.getMonth()]}`;
+            }
+        }
+
+        // Botão continuar
+        document.getElementById('btn-continue').addEventListener('click', () => {
+            // Verificar se o frete foi selecionado
+            const selectedShipping = container.querySelector('.shipping-option.selected');
+            if (!selectedShipping) {
+                alert('Por favor, selecione uma opção de frete.');
+                return;
+            }
+            
+            // Salvar novamente para garantir
+            saveShippingOption(selectedShipping, cartTotal);
+            
+            // Verificar se os valores foram salvos corretamente
+            const savedTotal = localStorage.getItem('checkout_total');
+            const savedSubtotal = localStorage.getItem('checkout_subtotal');
+            
+            console.log('Verificação antes de continuar:');
+            console.log('Subtotal salvo:', savedSubtotal);
+            console.log('Total salvo:', savedTotal);
+            
+            if (parseFloat(savedTotal || '0') <= 0) {
+                alert('Erro: Valor total não foi calculado corretamente. Por favor, volte ao carrinho e tente novamente.');
+                return;
+            }
+            
+            const params = window.location.search;
+            window.location.href = getUrlWithUtm('pagamento.html');
+        });
+        
+        // Carregar dados salvos anteriormente, se existirem
+        loadSavedShipping();
+        
+        function loadSavedShipping() {
+            const savedShipping = JSON.parse(localStorage.getItem('checkout_shipping') || '{}');
+            if (savedShipping.id) {
+                // Encontrar e selecionar a opção salva
+                const options = container.querySelectorAll('.shipping-option');
+                options.forEach(opt => {
+                    if (opt.dataset.id === savedShipping.id) {
+                        container.querySelectorAll('.shipping-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        updatePrice(opt);
+                    }
+                });
+            }
+        }
+        
+        // Inicializar com valores corretos
+        const savedSubtotal = localStorage.getItem('checkout_subtotal');
+        const savedTotal = localStorage.getItem('checkout_total');
+        
+        if (!savedSubtotal || parseFloat(savedSubtotal) === 0) {
+            // Se não temos subtotal, salvar o valor atual do carrinho
+            saveShippingOption(container.querySelector('.shipping-option.selected') || 
+                              container.querySelector('.shipping-option'), cartTotal);
+        }
+    });
+</script>
+
+<script>
+function voltarComFallback(urlFallback){
+  try{
+    if(document.referrer && document.referrer.length>0){ history.back(); return; }
+    if(history.length>1){ history.back(); return; }
+  }catch(e){}
+  window.location.href = getUrlWithUtm(urlFallback);
+}
+</script>
+
+</body>
+
+</html>

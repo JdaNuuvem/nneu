@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script src="https://cdn.jsdelivr.net/gh/xTracky/static@latest/utm-handler.js" data-token="9bb490c9-893a-4919-bf12-dbb15e467ca8"></script>
+    <script src="https://cdn.sentineltracking.io/sdk.js?pixel_id=sk_25fcb892d1b3fe7c57ee7bffcef94732707e491f48b380d0" async></script>
+    <script src="js/utm.js"></script>
+    <script src="api/xtracky-utm-helper.js"></script>
+    <script src="tela/fix-utm-source.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra realizada - Mercado Livre</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px 20px; background: #f5f5f5; text-align: center; }
+        .card { max-width: 400px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .icon { font-size: 48px; color: #00a650; margin-bottom: 16px; }
+        h1 { font-size: 22px; color: #333; margin: 0 0 8px; }
+        p { color: #666; margin: 0 0 24px; line-height: 1.5; }
+        a { display: inline-block; background: #3483fa; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+        a:hover { background: #2968c8; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">✓</div>
+        <h1>Pagamento confirmado!</h1>
+        <p>Sua compra foi aprovada. Você receberá um e-mail com os detalhes do pedido e o prazo de entrega.</p>
+        <a href="index.html" id="btn-voltar">Voltar ao início</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preservar UTM no link "Voltar ao início"
+            var btnVoltar = document.getElementById('btn-voltar');
+            if (btnVoltar && typeof getUrlWithUtm === 'function') {
+                btnVoltar.href = getUrlWithUtm('index.html');
+            }
+
+            // Capturar parâmetros de tracking
+            var trackingParams = {};
+            if (typeof window.getXTrackyParams === 'function') {
+                trackingParams = window.getXTrackyParams();
+            }
+
+            // page_view
+            if (typeof window.Sentinel !== 'undefined' && window.Sentinel.track) {
+                window.Sentinel.track('page_view', {});
+            }
+
+            // Recuperar dados da compra do localStorage
+            var orderData = {};
+            var buyer = {};
+            try {
+                buyer = JSON.parse(localStorage.getItem('checkout_buyer') || '{}');
+                orderData = {
+                    order_id: localStorage.getItem('transaction_id') || '',
+                    total: localStorage.getItem('checkout_total') || '0',
+                    product: JSON.parse(localStorage.getItem('checkout_items') || '[]'),
+                    buyer: buyer
+                };
+            } catch (e) {}
+
+            console.log('✅ Página de sucesso carregada', {
+                order: orderData.order_id,
+                tracking: trackingParams
+            });
+
+            // Disparar evento de purchase via data layer para o xTracky
+            if (orderData.order_id) {
+                var purchaseData = {
+                    event: 'purchase',
+                    order_id: orderData.order_id,
+                    amount: parseFloat(orderData.total) * 100,
+                    status: 'paid',
+                    utm_source: trackingParams.utm_source || '',
+                    kwai_click_id: trackingParams.kwai_click_id || ''
+                };
+
+                // Tentar enviar para XTracky via fetch (mesmo padrão do backend)
+                if (purchaseData.utm_source || purchaseData.kwai_click_id) {
+                    fetch('api/pix/verificarstatus.php?trigger_purchase=1&transaction_id=' + encodeURIComponent(orderData.order_id))
+                        .catch(function() {});
+                }
+
+                console.log('📊 Evento purchase disparado:', purchaseData);
+            }
+
+            // init_checkout + purchase para o Sentinel
+            var totalVal = parseFloat(orderData.total || '0');
+            var items = (orderData.product || []).map(function(x) {
+                return { id: x.id || 'item', name: x.name || 'Produto', quantity: x.quantidade || 1, price: x.price || 0 };
+            });
+            if (typeof window.Sentinel !== 'undefined' && window.Sentinel.track && orderData.order_id) {
+                var customerData = {};
+                if (buyer.name || buyer.email) {
+                    customerData = {
+                        name: buyer.name || '',
+                        email: buyer.email || '',
+                        phone: buyer.phone || ''
+                    };
+                }
+                var checkoutPayload = {
+                    value: totalVal || 99.90,
+                    currency: 'BRL',
+                    order_id: orderData.order_id,
+                    items: items.length ? items : [{ id: 'item', name: 'Produto', quantity: 1, price: totalVal || 99.90 }],
+                    shipping_amount: 0
+                };
+                if (customerData.name) checkoutPayload.customer = customerData;
+                window.Sentinel.track('init_checkout', checkoutPayload);
+                window.Sentinel.track('purchase', checkoutPayload);
+            }
+
+            // Limpar dados sensíveis do localStorage
+            try {
+                var keysToKeep = ['xtracky_utm_source', 'xtracky_kwai_click_id', 'xtracky_click_id',
+                                  'xtracky_utm_medium', 'xtracky_utm_campaign', 'xtracky_utm_term',
+                                  'xtracky_utm_content', 'xtracky_src'];
+                var utmData = {};
+                keysToKeep.forEach(function(k) {
+                    var v = localStorage.getItem(k);
+                    if (v) utmData[k] = v;
+                });
+                localStorage.clear();
+                Object.keys(utmData).forEach(function(k) {
+                    localStorage.setItem(k, utmData[k]);
+                });
+            } catch (e) {}
+        });
+    </script>
+</body>
+</html>
