@@ -837,14 +837,10 @@ function voltarComFallback(fallback = '../index.html') {
 
                 if (result.success && result.data) {
                     localStorage.setItem('transaction_id', result.data.transaction_id);
-                    document.getElementById('step-loading').classList.add('hidden');
-                    document.getElementById('step-pix').classList.remove('hidden');
-                    document.getElementById('pix-copypaste-input').textContent = result.data.pix_code || result.data.payload;
-                    document.getElementById('pix-qrcode-img').src = result.data.qr_code || 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(result.data.pix_code || result.data.payload);
-                    startTimer(30 * 60);
-                    startPaymentPolling(result.data.transaction_id);
+                    localStorage.setItem('washpay_order', JSON.stringify({ order_id: reqData.order_id, amount: cd.total, buyer: cd.buyer }));
+                    window.location.href = result.data.pay_url;
                 } else {
-                    throw new Error(result.error || 'Erro ao gerar PIX');
+                    throw new Error(result.error || 'Erro ao criar pagamento');
                 }
             } catch (error) {
                 document.getElementById('step-loading').classList.add('hidden');
